@@ -299,3 +299,44 @@ plt.ylabel('Bullying Rate (%)')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
+
+
+
+
+
+
+
+# STEP 7: Summary Insights
+print("\n" + "="*60)
+print("            FINAL ANALYSIS SUMMARY")
+print("="*60)
+
+print("1. Highest Total Bullying: ", df.loc[df['Total'].idxmax()]['Country'], f"({df['Total'].max()}%)")
+print("2. Lowest Total Bullying: ", df.loc[df['Total'].idxmin()]['Country'], f"({df['Total'].min()}%)")
+
+print(f"3. Correlation Summary:")
+print(f"   GDP vs Total Bullying: {df['GDP Per Capita (USD)'].corr(df['Total']):.3f}")
+print(f"   Poverty vs Total Bullying: {df['Poverty Rate (%)'].corr(df['Total']):.3f}")
+print(f"   Education Spending vs Total Bullying: {df['Education Spending (% of GDP)'].corr(df['Total']):.3f}")
+
+print(f"\n4. Income Level Trends:")
+income_avg = df.groupby('Income Level')['Total'].mean().sort_values()
+for level, avg in income_avg.items():
+    print(f"   {level}: {avg:.2f}%")
+
+print(f"\n5. Region with Highest Average Bullying: {df.groupby('Region')['Total'].mean().idxmax()}")
+print(f"   Region with Lowest Average Bullying: {df.groupby('Region')['Total'].mean().idxmin()}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
