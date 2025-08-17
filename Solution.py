@@ -198,3 +198,62 @@ print("Correlation between Poverty Rate and Bullying:")
 print("Total:", df['Poverty Rate (%)'].corr(df['Total']).round(3))
 print("Male:", df['Poverty Rate (%)'].corr(df['Male']).round(3))
 print("Female:", df['Poverty Rate (%)'].corr(df['Female']).round(3))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# STEP 5: Education Spending vs Bullying
+plt.figure(figsize=(14, 6))
+
+plt.subplot(1, 3, 1)
+plt.scatter(df['Education Spending (% of GDP)'], df['Total'], alpha=0.6, color='green')
+plt.xlabel('Education Spending (% of GDP)')
+plt.ylabel('Total Bullying (%)')
+plt.title('Education Spending vs Total Bullying')
+
+z_t = np.polyfit(df['Education Spending (% of GDP)'], df['Total'], 1)
+p_t = np.poly1d(z_t)
+plt.plot(df['Education Spending (% of GDP)'], p_t(df['Education Spending (% of GDP)']), "r--", alpha=0.8)
+
+plt.subplot(1, 3, 2)
+plt.scatter(df['Education Spending (% of GDP)'], df['Male'], alpha=0.6, color='blue')
+plt.xlabel('Education Spending (% of GDP)')
+plt.ylabel('Male Bullying (%)')
+plt.title('Education Spending vs Male Bullying')
+
+z_m = np.polyfit(df['Education Spending (% of GDP)'], df['Male'], 1)
+p_m = np.poly1d(z_m)
+plt.plot(df['Education Spending (% of GDP)'], p_m(df['Education Spending (% of GDP)']), "r--", alpha=0.8)
+
+plt.subplot(1, 3, 3)
+plt.scatter(df['Education Spending (% of GDP)'], df['Female'], alpha=0.6, color='pink')
+plt.xlabel('Education Spending (% of GDP)')
+plt.ylabel('Female Bullying (%)')
+plt.title('Education Spending vs Female Bullying')
+
+z_f = np.polyfit(df['Education Spending (% of GDP)'], df['Female'], 1)
+p_f = np.poly1d(z_f)
+plt.plot(df['Education Spending (% of GDP)'], p_f(df['Education Spending (% of GDP)']), "r--", alpha=0.8)
+
+plt.tight_layout()
+plt.show()
+
+# Correlation
+print("Correlation between Education Spending and Bullying:")
+print("Total:", df['Education Spending (% of GDP)'].corr(df['Total']).round(3))
+print("Male:", df['Education Spending (% of GDP)'].corr(df['Male']).round(3))
+print("Female:", df['Education Spending (% of GDP)'].corr(df['Female']).round(3))
