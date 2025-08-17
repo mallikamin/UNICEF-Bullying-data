@@ -269,38 +269,33 @@ print("Female:", df['Education Spending (% of GDP)'].corr(df['Female']).round(3)
 
 
 
-# STEP 6: Income Level and Region-wise Analysis
-plt.figure(figsize=(16, 10))
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Income Level
-plt.subplot(2, 2, 1)
-sns.boxplot(data=df, x='Income Level', y='Total', palette='Set2')
+# Load data
+file_path = r"C:\KS\Bullying & Economic indicators.csv"
+df = pd.read_csv(file_path)
+
+# Clean data: drop rows with missing Male/Female
+df_clean = df.dropna(subset=['Male', 'Female']).copy()
+df_clean['Male'] = pd.to_numeric(df_clean['Male'], errors='coerce')
+df_clean['Female'] = pd.to_numeric(df_clean['Female'], errors='coerce')
+df_clean = df_clean.dropna(subset=['Male', 'Female'])
+
+# Ensure categorical consistency
+df_clean['Income Level'] = df_clean['Income Level'].astype('category')
+df_clean['Region'] = df_clean['Region'].astype('category')
+
+# Set style for better visuals
+sns.set_style("whitegrid")
+
+
+plt.figure(figsize=(6, 6))
+sns.boxplot(data=df_clean, x='Income Level', y='Total', palette='Set2')
+plt.title('Distribution of Total Bullying by Income Level')
+plt.xlabel('Income Level')
+plt.ylabel('Bullying Rate (%)')
 plt.xticks(rotation=45)
-plt.title('Bullying (Total) by Income Level')
-
-plt.subplot(2, 2, 2)
-sns.boxplot(data=df, x='Income Level', y='Male', palette='Blues')
-plt.xticks(rotation=45)
-plt.title('Bullying (Male) by Income Level')
-
-plt.subplot(2, 2, 3)
-sns.boxplot(data=df, x='Income Level', y='Female', palette='Pastel1')
-plt.xticks(rotation=45)
-plt.title('Bullying (Female) by Income Level')
-
-# Region
-plt.subplot(2, 2, 4)
-sns.boxplot(data=df, x='Region', y='Total')
-plt.xticks(rotation=90)
-plt.title('Bullying (Total) by Region')
-
 plt.tight_layout()
 plt.show()
-
-# Mean bullying by Income Level
-print("\n=== Average Bullying by Income Level ===")
-print(df.groupby('Income Level')[['Total', 'Male', 'Female']].mean().round(2))
-
-# Mean bullying by Region
-print("\n=== Average Bullying by Region ===")
-print(df.groupby('Region')[['Total', 'Male', 'Female']].mean().round(2))
