@@ -1,4 +1,3 @@
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -493,3 +492,369 @@ print("4. Correlation Matrix Heatmap")
 print("5. Regional and Income Level Analysis")
 print("6. Countries with Extreme Bullying Rates")
 print("7. Gender Gap Analysis")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+import warnings
+warnings.filterwarnings('ignore')
+
+# Load the data
+file_path = r'C:\KS\Bullying & Economic indicators.csv'
+df = pd.read_csv(file_path)
+
+# Convert numeric columns
+numeric_cols = ['Total', 'Male', 'Female', 'GDP Per Capita (USD)', 'Poverty Rate (%)', 'Education Spending (% of GDP)']
+for col in numeric_cols:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+
+print("=== GDP PER CAPITA vs BULLYING RATES ANALYSIS ===")
+print("Investigating: Does higher GDP per capita translate to lower bullying rates?")
+print("="*70)
+
+# ===============================
+# 1. BASIC GDP-BULLYING CORRELATIONS
+# ===============================
+
+print("\n1. CORRELATION ANALYSIS")
+print("-" * 40)
+
+# Calculate correlations
+gdp_total_corr = df['GDP Per Capita (USD)'].corr(df['Total'])
+gdp_male_corr = df['GDP Per Capita (USD)'].corr(df['Male'])
+gdp_female_corr = df['GDP Per Capita (USD)'].corr(df['Female'])
+
+print(f"GDP Per Capita vs Bullying Correlations:")
+print(f"├── Total Bullying:  r = {gdp_total_corr:.4f}")
+print(f"├── Male Bullying:   r = {gdp_male_corr:.4f}")
+print(f"└── Female Bullying: r = {gdp_female_corr:.4f}")
+
+# Test statistical significance
+def correlation_significance(x, y, label):
+    clean_data = pd.DataFrame({'x': x, 'y': y}).dropna()
+    if len(clean_data) > 2:
+        corr, p_value = stats.pearsonr(clean_data['x'], clean_data['y'])
+        significance = "***" if p_value < 0.001 else "**" if p_value < 0.01 else "*" if p_value < 0.05 else "ns"
+        return corr, p_value, significance, len(clean_data)
+    return None, None, None, 0
+
+print(f"\nStatistical Significance Tests:")
+corr_total, p_total, sig_total, n_total = correlation_significance(df['GDP Per Capita (USD)'], df['Total'], "Total")
+corr_male, p_male, sig_male, n_male = correlation_significance(df['GDP Per Capita (USD)'], df['Male'], "Male")
+corr_female, p_female, sig_female, n_female = correlation_significance(df['GDP Per Capita (USD)'], df['Female'], "Female")
+
+print(f"├── Total (n={n_total}):  r = {corr_total:.4f}, p = {p_total:.4f} {sig_total}")
+print(f"├── Male (n={n_male}):   r = {corr_male:.4f}, p = {p_male:.4f} {sig_male}")
+print(f"└── Female (n={n_female}): r = {corr_female:.4f}, p = {p_female:.4f} {sig_female}")
+
+# ===============================
+# 2. GDP QUARTILE ANALYSIS
+# ===============================
+
+print(f"\n2. GDP QUARTILE ANALYSIS")
+print("-" * 40)
+
+# Create GDP quartiles
+gdp_clean = df.dropna(subset=['GDP Per Capita (USD)', 'Total'])
+gdp_clean['GDP_Quartile'] = pd.qcut(gdp_clean['GDP Per Capita (USD)'], 4, 
+                                   labels=['Q1 (Lowest)', 'Q2 (Low-Mid)', 'Q3 (Mid-High)', 'Q4 (Highest)'])
+
+quartile_stats = gdp_clean.groupby('GDP_Quartile').agg({
+    'GDP Per Capita (USD)': ['count', 'mean', 'min', 'max'],
+    'Total': ['mean', 'std'],
+    'Male': ['mean', 'std'], 
+    'Female': ['mean', 'std']
+}).round(2)
+
+print("GDP Quartile Statistics:")
+print(quartile_stats)
+
+# ANOVA test for significant differences between quartiles
+quartile_groups_total = [group['Total'].values for name, group in gdp_clean.groupby('GDP_Quartile')]
+quartile_groups_male = [group['Male'].dropna().values for name, group in gdp_clean.groupby('GDP_Quartile')]
+quartile_groups_female = [group['Female'].dropna().values for name, group in gdp_clean.groupby('GDP_Quartile')]
+
+f_total, p_total = stats.f_oneway(*quartile_groups_total)
+f_male, p_male = stats.f_oneway(*[g for g in quartile_groups_male if len(g) > 0])
+f_female, p_female = stats.f_oneway(*[g for g in quartile_groups_female if len(g) > 0])
+
+print(f"\nANOVA Tests (differences between GDP quartiles):")
+print(f"├── Total Bullying:  F = {f_total:.3f}, p = {p_total:.4f}")
+print(f"├── Male Bullying:   F = {f_male:.3f}, p = {p_male:.4f}")
+print(f"└── Female Bullying: F = {f_female:.3f}, p = {p_female:.4f}")
+
+# ===============================
+# 3. INCOME LEVEL ANALYSIS
+# ===============================
+
+print(f"\n3. INCOME LEVEL ANALYSIS")
+print("-" * 40)
+
+income_order = ['Low income', 'Lower middle income', 'Upper middle income', 'High income']
+income_analysis = df.groupby('Income Level').agg({
+    'GDP Per Capita (USD)': ['count', 'mean', 'median'],
+    'Total': ['mean', 'median', 'std'],
+    'Male': ['mean', 'median', 'std'],
+    'Female': ['mean', 'median', 'std']
+}).round(2)
+
+print("Bullying Rates by Income Level:")
+for income in income_order:
+    if income in income_analysis.index:
+        row = income_analysis.loc[income]
+        gdp_mean = row[('GDP Per Capita (USD)', 'mean')]
+        total_mean = row[('Total', 'mean')]
+        male_mean = row[('Male', 'mean')]
+        female_mean = row[('Female', 'mean')]
+        count = int(row[('GDP Per Capita (USD)', 'count')])
+        
+        print(f"\n{income} (n={count}):")
+        print(f"├── Avg GDP: ${gdp_mean:,.0f}")
+        print(f"├── Total Bullying: {total_mean:.1f}% (±{row[('Total', 'std')]:.1f})")
+        print(f"├── Male Bullying: {male_mean:.1f}% (±{row[('Male', 'std')]:.1f})")
+        print(f"└── Female Bullying: {female_mean:.1f}% (±{row[('Female', 'std')]:.1f})")
+
+# ===============================
+# 4. REGIONAL GDP-BULLYING PATTERNS
+# ===============================
+
+print(f"\n4. REGIONAL PATTERNS")
+print("-" * 40)
+
+regional_analysis = df.groupby('Region').agg({
+    'GDP Per Capita (USD)': ['count', 'mean', 'median'],
+    'Total': ['mean', 'std'],
+    'Male': ['mean', 'std'],
+    'Female': ['mean', 'std']
+}).round(2)
+
+print("Regional GDP and Bullying Analysis:")
+for region in regional_analysis.index:
+    row = regional_analysis.loc[region]
+    gdp_mean = row[('GDP Per Capita (USD)', 'mean')]
+    total_mean = row[('Total', 'mean')]
+    count = int(row[('GDP Per Capita (USD)', 'count')])
+    
+    print(f"\n{region} (n={count}):")
+    print(f"├── Avg GDP: ${gdp_mean:,.0f}")
+    print(f"└── Avg Total Bullying: {total_mean:.1f}%")
+
+# Calculate regional correlations
+print(f"\nRegional GDP-Bullying Correlations:")
+for region in df['Region'].unique():
+    region_data = df[df['Region'] == region]
+    if len(region_data.dropna(subset=['GDP Per Capita (USD)', 'Total'])) > 3:
+        corr = region_data['GDP Per Capita (USD)'].corr(region_data['Total'])
+        n = len(region_data.dropna(subset=['GDP Per Capita (USD)', 'Total']))
+        print(f"├── {region[:25]:<25}: r = {corr:>6.3f} (n={n})")
+
+# ===============================
+# 5. OUTLIER ANALYSIS
+# ===============================
+
+print(f"\n5. OUTLIER ANALYSIS")
+print("-" * 40)
+
+# High GDP, High Bullying
+high_gdp = df[df['GDP Per Capita (USD)'] > df['GDP Per Capita (USD)'].quantile(0.75)]
+high_gdp_high_bullying = high_gdp[high_gdp['Total'] > high_gdp['Total'].median()]
+
+print("High GDP + High Bullying Countries (Unexpected):")
+if not high_gdp_high_bullying.empty:
+    for _, country in high_gdp_high_bullying.iterrows():
+        print(f"├── {country['Country']}: GDP ${country['GDP Per Capita (USD)']:,.0f}, Bullying {country['Total']:.1f}%")
+else:
+    print("├── No clear outliers found")
+
+# Low GDP, Low Bullying  
+low_gdp = df[df['GDP Per Capita (USD)'] < df['GDP Per Capita (USD)'].quantile(0.25)]
+low_gdp_low_bullying = low_gdp[low_gdp['Total'] < low_gdp['Total'].median()]
+
+print(f"\nLow GDP + Low Bullying Countries (Positive outliers):")
+if not low_gdp_low_bullying.empty:
+    for _, country in low_gdp_low_bullying.iterrows():
+        print(f"├── {country['Country']}: GDP ${country['GDP Per Capita (USD)']:,.0f}, Bullying {country['Total']:.1f}%")
+else:
+    print("├── No clear outliers found")
+
+# ===============================
+# 6. REGRESSION ANALYSIS
+# ===============================
+
+print(f"\n6. REGRESSION ANALYSIS")
+print("-" * 40)
+
+def perform_regression(x, y, label):
+    """Perform linear regression and return results"""
+    clean_data = pd.DataFrame({'x': x, 'y': y}).dropna()
+    if len(clean_data) < 3:
+        return None
+    
+    X = clean_data[['x']]
+    y_clean = clean_data['y']
+    
+    model = LinearRegression()
+    model.fit(X, y_clean)
+    
+    y_pred = model.predict(X)
+    r2 = r2_score(y_clean, y_pred)
+    
+    return {
+        'slope': model.coef_[0],
+        'intercept': model.intercept_,
+        'r2': r2,
+        'n': len(clean_data)
+    }
+
+# Perform regressions
+regression_results = {}
+for bullying_type in ['Total', 'Male', 'Female']:
+    result = perform_regression(df['GDP Per Capita (USD)'], df[bullying_type], bullying_type)
+    if result:
+        regression_results[bullying_type] = result
+
+print("Linear Regression Results (Bullying = slope × GDP + intercept):")
+for bullying_type, results in regression_results.items():
+    slope = results['slope']
+    intercept = results['intercept']
+    r2 = results['r2']
+    n = results['n']
+    
+    # Calculate practical impact
+    gdp_change = 10000  # $10,000 increase in GDP
+    bullying_change = slope * gdp_change
+    
+    print(f"\n{bullying_type} Bullying (n={n}):")
+    print(f"├── Equation: Bullying = {slope:.6f} × GDP + {intercept:.2f}")
+    print(f"├── R² = {r2:.4f} ({r2*100:.1f}% variance explained)")
+    print(f"└── Impact: $10k GDP increase → {bullying_change:.2f}% change in bullying")
+
+# ===============================
+# 7. GENDER-SPECIFIC FINDINGS
+# ===============================
+
+print(f"\n7. GENDER-SPECIFIC ANALYSIS")
+print("-" * 40)
+
+# Compare male vs female GDP correlations
+gender_comparison = df[['GDP Per Capita (USD)', 'Male', 'Female']].dropna()
+if not gender_comparison.empty:
+    male_gdp_corr = gender_comparison['GDP Per Capita (USD)'].corr(gender_comparison['Male'])
+    female_gdp_corr = gender_comparison['GDP Per Capita (USD)'].corr(gender_comparison['Female'])
+    
+    print(f"GDP Impact Comparison:")
+    print(f"├── Males:   r = {male_gdp_corr:.4f}")
+    print(f"└── Females: r = {female_gdp_corr:.4f}")
+    
+    if abs(male_gdp_corr) > abs(female_gdp_corr):
+        stronger_gender = "males"
+        difference = abs(male_gdp_corr) - abs(female_gdp_corr)
+    else:
+        stronger_gender = "females"
+        difference = abs(female_gdp_corr) - abs(male_gdp_corr)
+    
+    print(f"\nGDP has a stronger correlation with bullying among {stronger_gender}")
+    print(f"Difference in correlation strength: {difference:.4f}")
+
+# Gender gap analysis by GDP level
+gender_comparison['Gender_Gap'] = gender_comparison['Male'] - gender_comparison['Female']
+gdp_gender_corr = gender_comparison['GDP Per Capita (USD)'].corr(gender_comparison['Gender_Gap'])
+
+print(f"\nGender Gap Analysis:")
+print(f"├── GDP vs Gender Gap correlation: r = {gdp_gender_corr:.4f}")
+if gdp_gender_corr > 0:
+    print(f"└── Higher GDP → Males have relatively higher bullying rates")
+elif gdp_gender_corr < 0:
+    print(f"└── Higher GDP → Females have relatively higher bullying rates")
+else:
+    print(f"└── No clear relationship between GDP and gender gap")
+
+# ===============================
+# 8. KEY INSIGHTS SUMMARY
+# ===============================
+
+print(f"\n8. KEY INSIGHTS & CONCLUSIONS")
+print("=" * 50)
+
+print(f"\n📊 CORRELATION STRENGTH:")
+if abs(gdp_total_corr) > 0.5:
+    strength = "Strong"
+elif abs(gdp_total_corr) > 0.3:
+    strength = "Moderate"
+elif abs(gdp_total_corr) > 0.1:
+    strength = "Weak"
+else:
+    strength = "Very weak"
+
+direction = "negative" if gdp_total_corr < 0 else "positive"
+print(f"├── {strength} {direction} correlation (r = {gdp_total_corr:.3f})")
+
+print(f"\n💡 MAIN FINDINGS:")
+if gdp_total_corr < -0.2:
+    print(f"├── ✅ Higher GDP generally associated with LOWER bullying rates")
+elif gdp_total_corr > 0.2:
+    print(f"├── ⚠️  Higher GDP associated with HIGHER bullying rates (unexpected)")
+else:
+    print(f"├── ❌ No clear relationship between GDP and bullying rates")
+
+# Statistical significance summary
+if p_total < 0.001:
+    print(f"├── ✅ Relationship is highly statistically significant (p < 0.001)")
+elif p_total < 0.05:
+    print(f"├── ✅ Relationship is statistically significant (p < 0.05)")
+else:
+    print(f"├── ❌ Relationship is not statistically significant (p = {p_total:.3f})")
+
+print(f"\n🚻 GENDER DIFFERENCES:")
+if abs(male_gdp_corr - female_gdp_corr) > 0.1:
+    if abs(male_gdp_corr) > abs(female_gdp_corr):
+        print(f"├── GDP has stronger impact on MALE bullying rates")
+    else:
+        print(f"├── GDP has stronger impact on FEMALE bullying rates")
+else:
+    print(f"├── GDP impact is similar for both genders")
+
+print(f"\n📈 PRACTICAL IMPLICATIONS:")
+if 'Total' in regression_results:
+    slope = regression_results['Total']['slope']
+    impact_10k = slope * 10000
+    if abs(impact_10k) > 1:
+        print(f"├── Every $10,000 GDP increase → {impact_10k:.1f}% change in bullying")
+    else:
+        print(f"├── GDP changes have minimal practical impact on bullying rates")
+
+print(f"\n🎯 RECOMMENDATIONS FOR KS CONSULTING:")
+print(f"├── Focus analysis on income-level and regional patterns")
+print(f"├── Investigate cultural and policy factors beyond economic indicators")
+print(f"├── Consider non-linear relationships and interaction effects")
+print(f"└── Explore education spending and poverty rates as stronger predictors")
+
+print(f"\n" + "="*70)
+print("GDP ANALYSIS COMPLETE - Run poverty and education scripts for full picture")
+print("="*70)
