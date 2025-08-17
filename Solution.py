@@ -140,3 +140,61 @@ print("Correlation between GDP and Bullying:")
 print("Total:", df['GDP Per Capita (USD)'].corr(df['Total']).round(3))
 print("Male:", df['GDP Per Capita (USD)'].corr(df['Male']).round(3))
 print("Female:", df['GDP Per Capita (USD)'].corr(df['Female']).round(3))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# STEP 4: Poverty Rate vs Bullying
+plt.figure(figsize=(14, 6))
+
+# Scatter plots
+plt.subplot(1, 3, 1)
+plt.scatter(df['Poverty Rate (%)'], df['Total'], alpha=0.6, color='orange')
+plt.xlabel('Poverty Rate (%)')
+plt.ylabel('Total Bullying (%)')
+plt.title('Poverty vs Total Bullying')
+
+z_t = np.polyfit(df['Poverty Rate (%)'], df['Total'], 1)
+p_t = np.poly1d(z_t)
+plt.plot(df['Poverty Rate (%)'], p_t(df['Poverty Rate (%)']), "r--", alpha=0.8)
+
+plt.subplot(1, 3, 2)
+plt.scatter(df['Poverty Rate (%)'], df['Male'], alpha=0.6, color='blue')
+plt.xlabel('Poverty Rate (%)')
+plt.ylabel('Male Bullying (%)')
+plt.title('Poverty vs Male Bullying')
+
+z_m = np.polyfit(df['Poverty Rate (%)'], df['Male'], 1)
+p_m = np.poly1d(z_m)
+plt.plot(df['Poverty Rate (%)'], p_m(df['Poverty Rate (%)']), "r--", alpha=0.8)
+
+plt.subplot(1, 3, 3)
+plt.scatter(df['Poverty Rate (%)'], df['Female'], alpha=0.6, color='pink')
+plt.xlabel('Poverty Rate (%)')
+plt.ylabel('Female Bullying (%)')
+plt.title('Poverty vs Female Bullying')
+
+z_f = np.polyfit(df['Poverty Rate (%)'], df['Female'], 1)
+p_f = np.poly1d(z_f)
+plt.plot(df['Poverty Rate (%)'], p_f(df['Poverty Rate (%)']), "r--", alpha=0.8)
+
+plt.tight_layout()
+plt.show()
+
+# Correlation
+print("Correlation between Poverty Rate and Bullying:")
+print("Total:", df['Poverty Rate (%)'].corr(df['Total']).round(3))
+print("Male:", df['Poverty Rate (%)'].corr(df['Male']).round(3))
+print("Female:", df['Poverty Rate (%)'].corr(df['Female']).round(3))
