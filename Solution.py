@@ -409,3 +409,26 @@ diff_fm = female_higher.copy()
 diff_fm['Diff'] = diff_fm['Female'] - diff_fm['Male']
 print(diff_fm.nlargest(5, 'Diff')[['Country', 'Female', 'Male', 'Diff']])
 
+
+
+
+
+
+
+
+
+
+
+print("\n=== AVERAGE BULLYING BY REGION (GENDER-WISE) ===")
+
+region_gender = df_clean.groupby('Region')[['Male', 'Female']].mean().round(2)
+print(region_gender)
+
+# Visualize
+region_gender.plot(kind='bar', figsize=(12, 6), color=['skyblue', 'lightcoral'], alpha=0.8)
+plt.title('Average Bullying Rate by Region (Male vs Female)')
+plt.ylabel('Bullying Rate (%)')
+plt.xticks(rotation=45, ha='right')
+plt.legend(['Male', 'Female'])
+plt.tight_layout()
+plt.show()
