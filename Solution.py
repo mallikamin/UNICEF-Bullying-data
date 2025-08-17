@@ -338,5 +338,53 @@ print(f"   Region with Lowest Average Bullying: {df.groupby('Region')['Total'].m
 
 
 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load data
+file_path = r"C:\KS\Bullying & Economic indicators.csv"
+df = pd.read_csv(file_path)
+
+# Drop rows where Male or Female is missing (marked as '-')
+df_clean = df.dropna(subset=['Male', 'Female']).copy()
+
+# Convert to numeric (just in case)
+df_clean['Male'] = pd.to_numeric(df_clean['Male'], errors='coerce')
+df_clean['Female'] = pd.to_numeric(df_clean['Female'], errors='coerce')
+df_clean = df_clean.dropna(subset=['Male', 'Female'])
+
+# ------------------------------------------------------------------
+# 1. DESCRIPTIVE STATISTICS: Total, Male, Female Bullying
+# ------------------------------------------------------------------
+
+print("=== DESCRIPTIVE STATISTICS (Bullying Rates %) ===\n")
+
+for col in ['Total', 'Male', 'Female']:
+    if col in df_clean.columns:
+        mean_val = df_clean[col].mean()
+        median_val = df_clean[col].median()
+        std_val = df_clean[col].std()
+        var_val = df_clean[col].var()
+        q1 = df_clean[col].quantile(0.25)
+        q2 = median_val
+        q3 = df_clean[col].quantile(0.75)
+        iqr = q3 - q1
+
+        print(f"{col.upper()} Bullying:")
+        print(f"  Mean:        {mean_val:.2f}")
+        print(f"  Median:      {median_val:.2f}")
+        print(f"  Std Dev:     {std_val:.2f}")
+        print(f"  Variance:    {var_val:.2f}")
+        print(f"  Q1 (25%):    {q1:.2f}")
+        print(f"  Q2 (50%):    {q2:.2f}")
+        print(f"  Q3 (75%):    {q3:.2f}")
+        print(f"  IQR:         {iqr:.2f}")
+        print("-" * 40)
+
+
+
+
 
 
