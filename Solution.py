@@ -257,3 +257,50 @@ print("Correlation between Education Spending and Bullying:")
 print("Total:", df['Education Spending (% of GDP)'].corr(df['Total']).round(3))
 print("Male:", df['Education Spending (% of GDP)'].corr(df['Male']).round(3))
 print("Female:", df['Education Spending (% of GDP)'].corr(df['Female']).round(3))
+
+
+
+
+
+
+
+
+
+
+
+
+# STEP 6: Income Level and Region-wise Analysis
+plt.figure(figsize=(16, 10))
+
+# Income Level
+plt.subplot(2, 2, 1)
+sns.boxplot(data=df, x='Income Level', y='Total', palette='Set2')
+plt.xticks(rotation=45)
+plt.title('Bullying (Total) by Income Level')
+
+plt.subplot(2, 2, 2)
+sns.boxplot(data=df, x='Income Level', y='Male', palette='Blues')
+plt.xticks(rotation=45)
+plt.title('Bullying (Male) by Income Level')
+
+plt.subplot(2, 2, 3)
+sns.boxplot(data=df, x='Income Level', y='Female', palette='Pastel1')
+plt.xticks(rotation=45)
+plt.title('Bullying (Female) by Income Level')
+
+# Region
+plt.subplot(2, 2, 4)
+sns.boxplot(data=df, x='Region', y='Total')
+plt.xticks(rotation=90)
+plt.title('Bullying (Total) by Region')
+
+plt.tight_layout()
+plt.show()
+
+# Mean bullying by Income Level
+print("\n=== Average Bullying by Income Level ===")
+print(df.groupby('Income Level')[['Total', 'Male', 'Female']].mean().round(2))
+
+# Mean bullying by Region
+print("\n=== Average Bullying by Region ===")
+print(df.groupby('Region')[['Total', 'Male', 'Female']].mean().round(2))
