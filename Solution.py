@@ -387,4 +387,25 @@ for col in ['Total', 'Male', 'Female']:
 
 
 
+# Compare Male vs Female bullying across countries
+male_higher = df_clean[df_clean['Male'] > df_clean['Female']]
+female_higher = df_clean[df_clean['Female'] > df_clean['Male']]
+equal = df_clean[df_clean['Male'] == df_clean['Female']]
+
+print(f"\n=== GENDER COMPARISON ACROSS COUNTRIES ===")
+print(f"Number of countries where Male bullying > Female: {len(male_higher)}")
+print(f"Number of countries where Female bullying > Male: {len(female_higher)}")
+print(f"Number of countries where Male = Female: {len(equal)}")
+
+# Top 5 countries where Male >> Female
+print("\nTop 5 countries where Male bullying is much higher than Female:")
+diff_mf = male_higher.copy()
+diff_mf['Diff'] = diff_mf['Male'] - diff_mf['Female']
+print(diff_mf.nlargest(5, 'Diff')[['Country', 'Male', 'Female', 'Diff']])
+
+# Top 5 countries where Female >> Male
+print("\nTop 5 countries where Female bullying is much higher than Male:")
+diff_fm = female_higher.copy()
+diff_fm['Diff'] = diff_fm['Female'] - diff_fm['Male']
+print(diff_fm.nlargest(5, 'Diff')[['Country', 'Female', 'Male', 'Diff']])
 
